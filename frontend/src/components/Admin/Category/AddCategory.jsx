@@ -1,4 +1,9 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import {
+  addCategory,
+  editCategory,
+} from "../../../api/services/admin/categoryApi";
+
 import "@fontsource/inter";
 import Modal from "@mui/joy/Modal";
 import ModalClose from "@mui/joy/ModalClose";
@@ -8,66 +13,143 @@ import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
 import { LocalizationProvider } from "@mui/x-date-pickers/LocalizationProvider";
 import { DatePicker } from "@mui/x-date-pickers/DatePicker";
 import Switch from "@mui/material/Switch";
+import dayjs from "dayjs";
 
-const AddCategory = ({ open, setOpen }) => {
+const AddCategory = ({
+  open,
+  setOpen,
+  setCategories,
+  initialCategory,
+  isEditMode,
+}) => {
   const [category, setCategory] = useState({
-    name: "",
-    description: "",
+    categoryName: "",
+    categoryDescription: "",
     offers: {
       offerName: "",
       discountPercentage: "",
-      description: "",
-      validFrom: "",
-      validTo: "",
+      offerDescription: "",
+      startDate: dayjs(),
+      endDate: dayjs(),
     },
   });
   const [checked, setChecked] = useState(false);
   const [errors, setErrors] = useState({});
 
+  useEffect(() => {
+    if (isEditMode && initialCategory) {
+      const defaultCategory = {
+        categoryName: initialCategory.categoryName || "",
+        categoryDescription: initialCategory.categoryDescription || "",
+        isActive:
+          initialCategory.isActive !== undefined
+            ? initialCategory.isActive
+            : true,
+        createdAt: initialCategory.createdAt
+          ? dayjs(initialCategory.createdAt)
+          : dayjs(),
+        offers: {
+          offerName: initialCategory.offers?.offerName || "",
+          offerDescription: initialCategory.offers?.offerDescription || "",
+          discountPercentage: initialCategory.offers?.discountPercentage || 0,
+          startDate: initialCategory.offers?.startDate
+            ? dayjs(initialCategory.offers.startDate)
+            : dayjs(),
+          endDate: initialCategory.offers?.endDate
+            ? dayjs(initialCategory.offers.endDate)
+            : dayjs(),
+          validFrom: initialCategory.offers?.validFrom
+            ? dayjs(initialCategory.offers.validFrom)
+            : dayjs(),
+          validTo: initialCategory.offers?.validTo
+            ? dayjs(initialCategory.offers.validTo)
+            : dayjs(),
+        },
+      };
+      setCategory(defaultCategory);
+      setChecked(!!initialCategory.offers?.offerName);
+    }
+  }, [isEditMode, initialCategory]);
+
   const validateForm = () => {
     let formErrors = {};
-    if (!category.name.trim()) formErrors.name = "Category name is required";
-    if (!category.description.trim())
+    if (!category.categoryName.trim())
+      formErrors.name = "Category name is required";
+    if (!category.categoryDescription.trim())
       formErrors.description = "Category description is required";
 
     if (checked) {
-      const today = new Date();
+      const today = new Date().toLocaleDateString();
       if (!category.offers.offerName.trim())
         formErrors.offerName = "Offer name is required";
-      if (!category.offers.description.trim())
+      if (!category.offers.offerDescription.trim())
         formErrors.offerDescription = "Offer description is required";
-      if (!category.offers.validFrom) {
-        formErrors.validFrom = "Offer start date is required";
-      } else if (new Date(category.offers.validFrom) < today) {
-        formErrors.validFrom = "Offer start date cannot be in the past";
-      }
-      if (!category.offers.validTo) {
-        formErrors.validTo = "Offer end date is required";
-      } else if (new Date(category.offers.validTo) < today) {
-        formErrors.validTo = "Offer end date cannot be in the past";
+      if (isNaN(category.offers.discountPercentage)) {
+        formErrors.discountPercentage = "Discount percentage must be a number";
       } else if (
-        category.offers.validFrom &&
-        new Date(category.offers.validTo) < new Date(category.offers.validFrom)
+        Number(category.offers.discountPercentage) < 0 ||
+        Number(category.offers.discountPercentage) > 100
       ) {
-        formErrors.validTo = "Offer end date cannot be before start date";
+        formErrors.discountPercentage =
+          "Discount percentage must be between 0 and 100";
+      }
+      if (!category.offers.startDate) {
+        formErrors.startDate = "Offer start date is required";
+      } else if (
+        new Date(category.offers.startDate).toLocaleDateString() < today
+      ) {
+        formErrors.startDate = "Offer start date cannot be in the past";
+      }
+
+      if (!category.offers.endDate) {
+        formErrors.endDate = "Offer end date is required";
+      } else if (
+        new Date(category.offers.endDate).toLocaleDateString() < today
+      ) {
+        formErrors.endDate = "Offer end date cannot be in the past";
+      } else if (
+        category.offers.startDate &&
+        new Date(category.offers.endDate).toLocaleDateString() <
+          new Date(category.offers.startDate).toLocaleDateString()
+      ) {
+        formErrors.endDate = "Offer end date cannot be before start date";
       }
     }
     setErrors(formErrors);
     return Object.keys(formErrors).length === 0;
   };
-  const addCategory = (e) => {
+  const handleAddCategory = async (e) => {
     e.preventDefault();
+
     if (validateForm()) {
-      console.log("Form is valid. Submitting...", category);
+      if (isEditMode) {
+        try {
+          const response = await editCategory(initialCategory._id, category);
+          setCategories((cur) =>
+            cur.map((category) =>
+              category._id === response._id ? response : category
+            )
+          );
+        } catch (error) {
+          console.log(error.message);
+        }
+      } else {
+        try {
+          const response = await addCategory(category);
+          setCategories((cur) => [...cur, response]);
+        } catch (error) {
+          console.log(error.message);
+        }
+      }
       setCategory({
-        name: "",
-        description: "",
+        categoryName: "",
+        categoryDescription: "",
         offers: {
           offerName: "",
           discountPercentage: "",
-          description: "",
-          validFrom: "",
-          validTo: "",
+          offerDescription: "",
+          startDate: "",
+          endDate: "",
         },
       });
       setOpen(false);
@@ -97,23 +179,23 @@ const AddCategory = ({ open, setOpen }) => {
           textColor="inherit"
           fontWeight="lg"
           mb={1}>
-          Add Category
+          {isEditMode ? "Edit Category" : "Add Category"}
         </Typography>
         <Typography
           id="modal-desc"
           textColor="text.tertiary"
           component={"span"}>
           <div className="h-full">
-            <form onSubmit={addCategory}>
+            <form onSubmit={handleAddCategory}>
               <div className="flex flex-col max-w-[800px] gap-2 mb-3">
                 <label className="font-medium text-black required">
                   Category Name
                 </label>
                 <input
                   type="text"
-                  value={category.name}
+                  value={category.categoryName}
                   onChange={(e) =>
-                    setCategory({ ...category, name: e.target.value })
+                    setCategory({ ...category, categoryName: e.target.value })
                   }
                   className="h-[40px] outline-none py-2 px-4 rounded bg-[#f1f1f1] text-black"
                   placeholder="Category Name"
@@ -128,9 +210,12 @@ const AddCategory = ({ open, setOpen }) => {
                 </label>
                 <textarea
                   type="text"
-                  value={category.description}
+                  value={category.categoryDescription}
                   onChange={(e) =>
-                    setCategory({ ...category, description: e.target.value })
+                    setCategory({
+                      ...category,
+                      categoryDescription: e.target.value,
+                    })
                   }
                   rows={4}
                   className="outline-none py-2 px-4 rounded bg-[#f1f1f1] text-black"
@@ -155,42 +240,75 @@ const AddCategory = ({ open, setOpen }) => {
 
               {checked && (
                 <div>
-                  <div className="flex flex-col max-w-[800px] gap-2 mb-3">
-                    <label className="font-medium text-black">Offer Name</label>
-                    <input
-                      type="text"
-                      value={category.offers.offerName}
-                      onChange={(e) =>
-                        setCategory({
-                          ...category,
-                          offers: {
-                            ...category.offers,
-                            offerName: e.target.value,
-                          },
-                        })
-                      }
-                      className="h-[40px] outline-none py-2 px-4 rounded bg-[#f1f1f1] text-black"
-                      placeholder="Offer Name"
-                    />
+                  <div className="flex justify-between gap-4">
+                    <div className="w-full">
+                      <div className="flex flex-col max-w-[800px] gap-2 mb-3">
+                        <label className="font-medium text-black">
+                          Offer Name
+                        </label>
+                        <input
+                          type="text"
+                          value={category.offers.offerName}
+                          onChange={(e) =>
+                            setCategory({
+                              ...category,
+                              offers: {
+                                ...category.offers,
+                                offerName: e.target.value,
+                              },
+                            })
+                          }
+                          className="h-[40px] outline-none py-2 px-4 rounded bg-[#f1f1f1] text-black"
+                          placeholder="Offer Name"
+                        />
+                      </div>
+                      {errors.offerName && (
+                        <span className="text-red-500 text-sm">
+                          {errors.offerName}
+                        </span>
+                      )}
+                    </div>
+                    <div className="w-full">
+                      <div className="flex flex-col max-w-[800px] gap-2 mb-3 w-full">
+                        <label className="font-medium text-black">
+                          Discount Percentage
+                        </label>
+                        <input
+                          type="text"
+                          value={category.offers.discountPercentage}
+                          onChange={(e) =>
+                            setCategory({
+                              ...category,
+                              offers: {
+                                ...category.offers,
+                                discountPercentage: e.target.value,
+                              },
+                            })
+                          }
+                          className="h-[40px] outline-none py-2 px-4 rounded bg-[#f1f1f1] text-black"
+                          placeholder="Discount Percentage"
+                        />
+                      </div>
+                      {errors.discountPercentage && (
+                        <span className="text-red-500 text-sm">
+                          {errors.discountPercentage}
+                        </span>
+                      )}
+                    </div>
                   </div>
-                  {errors.offerName && (
-                    <span className="text-red-500 text-sm">
-                      {errors.offerName}
-                    </span>
-                  )}
                   <div className="flex flex-col max-w-[800px] gap-2 mb-3">
                     <label className="font-medium text-black">
                       Offer Description
                     </label>
                     <textarea
                       type="text"
-                      value={category.offers.description}
+                      value={category.offers.offerDescription}
                       onChange={(e) =>
                         setCategory({
                           ...category,
                           offers: {
                             ...category.offers,
-                            description: e.target.value,
+                            offerDescription: e.target.value,
                           },
                         })
                       }
@@ -215,18 +333,21 @@ const AddCategory = ({ open, setOpen }) => {
                       <LocalizationProvider dateAdapter={AdapterDayjs}>
                         <DatePicker
                           sx={{ bgcolor: "#f1f1f1" }}
-                          value={category.validFrom}
+                          value={dayjs(category.offers.startDate)}
                           onChange={(newVal) =>
                             setCategory({
                               ...category,
-                              offers: { ...category.offers, validFrom: newVal },
+                              offers: {
+                                ...category.offers,
+                                startDate: dayjs(newVal),
+                              },
                             })
                           }
                         />
                       </LocalizationProvider>
-                      {errors.validFrom && (
+                      {errors.startDate && (
                         <span className="text-red-500 text-sm">
-                          {errors.validFrom}
+                          {errors.startDate}
                         </span>
                       )}
                     </div>
@@ -237,18 +358,21 @@ const AddCategory = ({ open, setOpen }) => {
                       <LocalizationProvider dateAdapter={AdapterDayjs}>
                         <DatePicker
                           sx={{ bgcolor: "#f1f1f1" }}
-                          value={category.validTo}
+                          value={dayjs(category.offers.endDate)}
                           onChange={(newVal) =>
                             setCategory({
                               ...category,
-                              offers: { ...category.offers, validTo: newVal },
+                              offers: {
+                                ...category.offers,
+                                endDate: dayjs(newVal),
+                              },
                             })
                           }
                         />
                       </LocalizationProvider>
-                      {errors.validTo && (
+                      {errors.endDate && (
                         <span className="text-red-500 text-sm">
-                          {errors.validTo}
+                          {errors.endDate}
                         </span>
                       )}
                     </div>
@@ -265,14 +389,14 @@ const AddCategory = ({ open, setOpen }) => {
                   onClick={() => {
                     setOpen(false);
                     setCategory({
-                      name: "",
-                      description: "",
+                      categoryName: "",
+                      categoryDescription: "",
                       offers: {
                         offerName: "",
                         discountPercentage: "",
-                        description: "",
-                        validFrom: "",
-                        validTo: "",
+                        offerDescription: "",
+                        startDate: "",
+                        endDate: "",
                       },
                     });
                   }}>

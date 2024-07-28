@@ -4,9 +4,45 @@
     font-family: "Abril Fatface", serif;
     font-weight: 400;
     display: flex;
-    justify-content: center;
     align-items: center;
     font-style: normal;
   }
 
-    
+.footerText{
+  font-family: "Poppins", sans-serif;
+  font-weight: 400;
+  font-style: normal;
+  color: rgba(0, 0, 0, 0.6);
+  font-size: 14px;
+}
+
+.footerHeaders{
+  font-family: "Roboto Mono", monospace;
+  font-optical-sizing: auto;
+  font-weight: 500;
+  font-style: normal;
+  text-transform: uppercase;
+}
+
+.footer{
+  background-color: #f1f1f1;
+  padding: 64px 16px;
+}
+
+.footer ul{
+  display: flex;
+  gap: 0.75rem;
+  flex-direction: column;
+}
+
+.footer ul li:hover{
+  cursor: pointer;
+  color: #60a5fa;
+  font-size: 14px;
+}
+
+.footerLine{
+  background-color: #0000001a;
+  height: 2px;
+  margin: 36px 36px 20px 36px;
+} 

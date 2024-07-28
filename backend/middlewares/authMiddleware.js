@@ -18,7 +18,7 @@ const protect = async (req, res, next) => {
 
 const isAdmin = async (req, res, next) => {
   if (req.user?.isAdmin) {
-    return next();
+    next();
   }
   res.status(403).json("Not Authorized, no permission");
 };

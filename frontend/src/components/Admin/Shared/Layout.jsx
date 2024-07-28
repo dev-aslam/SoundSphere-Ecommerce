@@ -3,7 +3,7 @@ import { Outlet, Link } from "react-router-dom";
 import "./shared.css";
 import { clearCredentials } from "../../../features/authSlice";
 import { useDispatch } from "react-redux";
-import { logoutAdmin } from "../../../services/Admin/logout";
+import { adminLogout } from "../../../api/services/admin/authAdmin";
 
 //MUI STUFF
 import { useMediaQuery, Drawer, IconButton } from "@mui/material";
@@ -55,7 +55,7 @@ function Layout() {
   ];
 
   const handleLogout = async () => {
-    const response = await logoutAdmin();
+    const response = await adminLogout();
     console.log(response.message);
     dispatach(clearCredentials());
   };
@@ -119,9 +119,13 @@ function Layout() {
             )}
             <h1 className="font-sans text-2xl font-semibold">{selected}</h1>
           </div>
-          <div className="flex gap-6">
-            <NotificationsIcon />
-            <AccountCircleIcon />
+          <div className="flex gap-4">
+            <div className="cursor-pointer p-1 rounded-xl hover:bg-slate-300 hover:text-blue-500">
+              <NotificationsIcon />
+            </div>
+            <div className="cursor-pointer p-1 rounded-xl hover:bg-slate-300 hover:text-blue-500">
+              <AccountCircleIcon />
+            </div>
           </div>
         </div>
         <Outlet />

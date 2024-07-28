@@ -1,4 +1,8 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import {
+  getCategories,
+  deleteCategory,
+} from "../../../api/services/admin/categoryApi";
 import SearchIcon from "@mui/icons-material/Search";
 import Table from "@mui/material/Table";
 import TableBody from "@mui/material/TableBody";
@@ -8,62 +12,54 @@ import TableHead from "@mui/material/TableHead";
 import TableRow from "@mui/material/TableRow";
 import AddCategory from "./AddCategory";
 
-const categories = [
-  {
-    categoryId: 1,
-    name: "Electronics",
-    status: "Active",
-  },
-  {
-    categoryId: 2,
-    name: "Books",
-    status: "Active",
-  },
-  {
-    categoryId: 3,
-    name: "Clothing",
-    status: "Inactive",
-  },
-  {
-    categoryId: 4,
-    name: "Home Appliances",
-    status: "Active",
-  },
-  {
-    categoryId: 5,
-    name: "Sports",
-    status: "Inactive",
-  },
-  {
-    categoryId: 6,
-    name: "Beauty",
-    status: "Active",
-  },
-  {
-    categoryId: 7,
-    name: "Toys",
-    status: "Active",
-  },
-  {
-    categoryId: 8,
-    name: "Automotive",
-    status: "Inactive",
-  },
-  {
-    categoryId: 9,
-    name: "Jewelry",
-    status: "Active",
-  },
-  {
-    categoryId: 10,
-    name: "Furniture",
-    status: "Active",
-  },
-];
-
 const Category = () => {
   const [search, setSearch] = useState("");
   const [open, setOpen] = useState(false);
+  const [categories, setCategories] = useState([]);
+  const [isEditing, setEditing] = useState(false);
+  const [initialCategory, setInitialCategory] = useState(null);
+
+  useEffect(() => {
+    const fetchCategories = async () => {
+      try {
+        const fetchedCategories = await getCategories();
+        setCategories(fetchedCategories);
+      } catch (error) {
+        console.log(error.message);
+      }
+    };
+    fetchCategories();
+  }, []);
+
+  const handleDelete = async (categoryID) => {
+    try {
+      const response = await deleteCategory(categoryID);
+      setCategories((cur) =>
+        cur.map((category) =>
+          category._id === categoryID ? response : category
+        )
+      );
+    } catch (error) {
+      console.log(error.message);
+    }
+  };
+
+  const handleEdit = (category) => {
+    setInitialCategory(category);
+    setEditing(true);
+    setOpen(true);
+  };
+
+  const handleAddCategory = () => {
+    setInitialCategory(null);
+    setEditing(false);
+    setOpen(true);
+  };
+
+  // Filter categories based on the search input
+  const filteredCategories = categories.filter((category) =>
+    category.categoryName.toLowerCase().includes(search.toLowerCase())
+  );
 
   return (
     <div>
@@ -83,7 +79,7 @@ const Category = () => {
         <div>
           <button
             className="bg-black rounded border border-black text-white text-center py-3 w-[200px] text-base font-semibold mr-10 hover:bg-white hover:text-black"
-            onClick={() => setOpen(true)}>
+            onClick={handleAddCategory}>
             Add Category
           </button>
         </div>
@@ -100,6 +96,12 @@ const Category = () => {
                 <TableCell align="left" className="uppercase">
                   Category
                 </TableCell>
+                <TableCell
+                  align="left"
+                  className="uppercase"
+                  sx={{ width: 600 }}>
+                  Description
+                </TableCell>
                 <TableCell align="left" className="uppercase">
                   Status
                 </TableCell>
@@ -109,26 +111,43 @@ const Category = () => {
               </TableRow>
             </TableHead>
             <TableBody>
-              {categories.map((category) => (
+              {filteredCategories.map((category, ind) => (
                 <TableRow
-                  key={category.categoryId}
+                  key={category._id}
                   sx={{ "&:last-child td, &:last-child th": { border: 0 } }}>
                   <TableCell component="th" scope="row">
-                    {category.categoryId}
+                    {ind + 1}
                   </TableCell>
-                  <TableCell align="left">{category.name}</TableCell>
-                  <TableCell align="left">{category.status}</TableCell>
+                  <TableCell align="left">{category.categoryName}</TableCell>
+                  <TableCell align="left">
+                    {category.categoryDescription}
+                  </TableCell>
+                  <TableCell align="left">
+                    <div
+                      className={`flex py-1 px-3 rounded justify-center items-center w-[90px] font-semibold ${
+                        category.isActive
+                          ? "bg-green-200 text-green-700"
+                          : "bg-red-200 text-red-700"
+                      }`}>
+                      {category.isActive ? "Active" : "Inactive"}
+                    </div>
+                  </TableCell>
                   <TableCell align="center">
                     <div>
                       <button
                         className="bg-yellow-200 py-1 px-2 rounded text-yellow-600 text-xs font-semibold max-w-[50px] w-full 
-                      mr-2">
+                      mr-2"
+                        onClick={() => handleEdit(category)}>
                         Edit
                       </button>
                       <button
-                        className="bg-red-200 py-1 px-2 rounded text-red-600 text-xs font-semibold max-w-[50px] w-full 
-                      mr-2">
-                        Delete
+                        className={`py-1 px-2 rounded text-xs font-semibold w-[85px]  mr-2 ${
+                          category.isActive
+                            ? "bg-red-200 text-red-600"
+                            : "bg-green-200 text-green-600"
+                        }`}
+                        onClick={() => handleDelete(category._id)}>
+                        {category.isActive ? "Disable" : "Activate"}
                       </button>
                     </div>
                   </TableCell>
@@ -138,7 +157,13 @@ const Category = () => {
           </Table>
         </TableContainer>
       </div>
-      <AddCategory open={open} setOpen={setOpen} />
+      <AddCategory
+        open={open}
+        setOpen={setOpen}
+        setCategories={setCategories}
+        initialCategory={initialCategory}
+        isEditMode={isEditing}
+      />
     </div>
   );
 };

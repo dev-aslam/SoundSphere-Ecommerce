@@ -4,10 +4,9 @@ import adminRoute from "./routes/adminRoute.js";
 import cors from "cors";
 import connectDB from "./config/db.js";
 import cookieParser from "cookie-parser";
-import { createAdminUser } from "./models/adminCreate.js";
 
 dotenv.config();
-const PORT = process.env.PORT || 5000;
+const PORT = process.env.PORT || 5174;
 const app = express();
 
 app.use(

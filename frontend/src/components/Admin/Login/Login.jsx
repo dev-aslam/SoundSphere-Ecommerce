@@ -1,8 +1,8 @@
 import { useState, useEffect } from "react";
-import { authAdmin } from "../../../services/Admin/login.js";
 import { useNavigate } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
 import { setCredentials } from "../../../features/authSlice.js";
+import { adminLogin } from "../../../api/services/admin/authAdmin.js";
 
 const Login = () => {
   const [formData, setFormData] = useState({
@@ -25,7 +25,7 @@ const Login = () => {
     e.preventDefault();
     setError("");
     try {
-      const response = await authAdmin(formData);
+      const response = await adminLogin(formData);
       dispatach(setCredentials({ ...response }));
     } catch (err) {
       setError(err.message);
