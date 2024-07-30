@@ -22,10 +22,14 @@ const ProductDetails = () => {
       "/productPlaceholder3.jpg",
     ],
     rating: 4,
-    price: "₹ 279,999",
+    offerDiscount: 20,
+    price: 279999,
     description:
       "The FatFreq Scarlet is a hybrid IEM with a driver configuration of 1 Hyper Tweeter, 1 Balanced Armature and 1 Dynamic Driver using Basscannon Technology. It features a 3-way Crossover design, with an impedance of 38Ω and a frequency response range of 20Hz-45kHz. The Hyper Tweeter delivers clarity up to 40kHz, while Bass Cannon Subwoofer technology achieves deep bass of over 30dB, controlled below 200Hz without mid-range bleed.",
   };
+
+  const discountedPrice =
+    Number(product.price) * (1 - product.offerDiscount / 100);
 
   const testimonials = [
     {
@@ -166,7 +170,7 @@ const ProductDetails = () => {
                 backgroundImage: `url(${selectedImage})`,
                 backgroundPosition: `${zoomPosition.x}% ${zoomPosition.y}%`,
                 top: 0,
-                left: "calc(100% + 10px)", // Adjust position as needed
+                left: "calc(100% + 10px)",
               }}
             />
           </div>
@@ -183,6 +187,13 @@ const ProductDetails = () => {
               size="large"
             />
             <span className="text-base">{product.rating}/5</span>
+          </div>
+          <div className="flex gap-3 items-center">
+            <p className="font-bold text-xl">{`₹ ${discountedPrice.toLocaleString()}`}</p>
+            <p className="line-through text-red-600 font-medium">{`₹ ${product.price.toLocaleString()}`}</p>
+            <div className="rounded-full bg-green-200 py-2 px-3 font-semibold">
+              <p className="text-green-600">{`${product.offerDiscount}% off`}</p>
+            </div>
           </div>
           <p className="font-[poppins] text-[#00000099] mb-9">
             {product.description}
