@@ -1,7 +1,7 @@
-import generateToken from "../util/accessToken.js";
+import { generateTokenAdmin } from "../util/accessToken.js";
 import {
-  findUserByEmail,
-  checkPassword,
+  adminCheckPassword,
+  adminFindByEmail,
 } from "../repositories/adminRepository.js";
 import {
   getCategories,
@@ -16,9 +16,9 @@ import { blockUsers, getUsers } from "../repositories/userRepository.js";
 // @access Public
 const loginAdmin = async (req, res) => {
   const { email, password } = req.body;
-  const user = await findUserByEmail(email);
-  if (user && (await checkPassword(user, password))) {
-    generateToken(res, user._id);
+  const user = await adminFindByEmail(email);
+  if (user && (await adminCheckPassword(user, password))) {
+    generateTokenAdmin(res, user._id);
     res.status(200).json({
       _id: user._id,
       name: user.name,
@@ -35,7 +35,7 @@ const loginAdmin = async (req, res) => {
 // @route POST/api/admin/logout
 // @access Public
 const logoutAdmin = async (req, res) => {
-  res.cookie("jwt", "", {
+  res.cookie("jwtAdmin", "", {
     httpOnly: true,
     secure: process.env.NODE_ENV !== "develpoement",
     expires: new Date(0),

@@ -23,19 +23,19 @@ router.route("/products").get(protect, isAdmin).post(protect, isAdmin);
 //CATEGORY ROUTE
 router
   .route("/categories")
-  .get(protect, fetchCategories)
-  .post(protect, addCategories);
+  .get(protect, isAdmin, fetchCategories)
+  .post(protect, isAdmin, addCategories);
 
 //Category Edit/delete
 router
   .route("/categories/:id")
-  .patch(protect, deleteCategories)
-  .put(protect, updateCategories);
+  .patch(protect, isAdmin, deleteCategories)
+  .put(protect, isAdmin, updateCategories);
 
 //userList
-router.get("/users", protect, getuserList);
+router.get("/users", protect, isAdmin, getuserList);
 
 //userBlock or unblock
-router.patch("/users/:id", protect, userBlockStatus);
+router.patch("/users/:id", protect, isAdmin, userBlockStatus);
 
 export default router;

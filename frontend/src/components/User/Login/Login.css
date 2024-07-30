@@ -40,7 +40,8 @@
   border: 1px solid #000; 
 }
 
-.form-item input:focus + label{
+.form-item input:focus + label,
+.form-item input:not(:placeholder-shown) + label{
   top: -6px;
   color: #000;
   font-weight: bold;

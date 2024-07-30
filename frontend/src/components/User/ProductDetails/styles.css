@@ -1,0 +1,19 @@
+.zoomed-image {
+    position: absolute;
+    width: 400px;
+    height: 400px;
+    border: 2px solid #00adb7;
+    overflow: hidden;
+    background-repeat: no-repeat;
+    background-size: 200%;
+    pointer-events: none;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
+    display: none;
+    z-index: 999;
+    border-radius: 20px;
+  }
+  
+  .zoomed-image.visible {
+    display: block;
+  }
+  

@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
-import { setCredentials } from "../../../features/authSlice.js";
+import { setAdminCredentials } from "../../../features/authAdminSlice.js";
 import { adminLogin } from "../../../api/services/admin/authAdmin.js";
 
 const Login = () => {
@@ -13,20 +13,20 @@ const Login = () => {
   const navigate = useNavigate();
   const dispatach = useDispatch();
 
-  const { userInfo } = useSelector((state) => state.authAdmin);
+  const { adminInfo } = useSelector((state) => state.authAdmin);
 
   useEffect(() => {
-    if (userInfo) {
+    if (adminInfo) {
       navigate("/admin/");
     }
-  }, [navigate, userInfo]);
+  }, [navigate, adminInfo]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError("");
     try {
       const response = await adminLogin(formData);
-      dispatach(setCredentials({ ...response }));
+      dispatach(setAdminCredentials({ ...response }));
     } catch (err) {
       setError(err.message);
     }

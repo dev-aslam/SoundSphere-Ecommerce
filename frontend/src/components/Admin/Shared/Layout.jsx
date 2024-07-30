@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Outlet, Link } from "react-router-dom";
 import "./shared.css";
-import { clearCredentials } from "../../../features/authSlice";
+import { clearAdminCredentials } from "../../../features/authAdminSlice.js";
 import { useDispatch } from "react-redux";
 import { adminLogout } from "../../../api/services/admin/authAdmin";
 
@@ -57,7 +57,7 @@ function Layout() {
   const handleLogout = async () => {
     const response = await adminLogout();
     console.log(response.message);
-    dispatach(clearCredentials());
+    dispatach(clearAdminCredentials());
   };
 
   const drawerContent = (
